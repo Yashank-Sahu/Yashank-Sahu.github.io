@@ -1,0 +1,68 @@
+{{/* layouts/partials/sections/projects.html */}}
+{{ if .Site.Params.projects.enable | default false }}
+<section id="projects" class="py-5">
+    <div class="container">
+        <h3 class="text-center">{{ .Site.Params.projects.title | default "Projects" }}</h3>
+        <div class="row justify-content-center px-3 px-md-5">
+            
+            {{/* SECTION 1: Projects from config.yaml params.projects.items
+                We are commenting this out to prioritize projects from content/projects/
+                and to avoid duplication if projects are defined in both places.
+                If you prefer to ONLY show projects defined in config.yaml on the homepage,
+                you would uncomment this section and comment out/remove SECTION 2 below.
+            */}}
+            {{/* SECTION 2: Projects from content/projects/ directory
+                This will display up to 3 projects on the homepage.
+                Projects can be excluded by setting 'showInHome: false' in their front matter.
+                Order can be controlled by 'weight' or 'date' in front matter.
+            */}}
+            {{ $projectsFromContent := where .Site.RegularPages "Type" "projects" }}
+            {{ $eligibleProjects := where $projectsFromContent ".Params.showInHome" "!=" false }}
+            {{ $projectsToShowOnHome := first 3 $eligibleProjects }}
+            
+            {{ range $projectsToShowOnHome }}
+            <div class="col-lg-4 col-md-6 my-3">
+                <div class="card my-3 h-100" title="{{ .Title }}">
+                    <div class="card-head">
+                        {{ with .Params.image }}
+                        <img class="card-img-top" src="{{ . | absURL }}" alt="{{ $.Title }}">
+                        {{ else }}
+                        {{ end }}
+                    </div>
+                    <div class="card-body bg-transparent p-3">
+                        <div class="pb-2 bg-transparent">
+                            {{ range .Params.badges }}
+                            <span class="badge badge-secondary">{{ . }}</span>
+                            {{ end }}
+                            {{ range .Params.technologies }} <span class="badge bg-info text-dark me-1">{{ . }}</span> {{ end }}
+                        </div>
+                        <h5 class="card-title bg-transparent">{{ .Title | truncate 50 }}</h5>
+                        <div class="card-text bg-transparent secondary-font">
+                            {{ .Params.description | default (.Summary | truncate 100) | safeHTML }}
+                        </div>
+                    </div>
+                    <div class="card-footer py-3">
+                        {{ range .Params.links }} <span class="m-1 mx-2">
+                            <a href="{{ .url }}" target="_blank" title="{{ .name | default "Link" }}">
+                                <i class="{{ .icon }}"></i>
+                            </a>
+                        </span>
+                        {{ end }}
+                        <span class="float-end">
+                            <a class="btn btn-sm btn-primary" href="{{ .RelPermalink }}"> Know more
+                            </a>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {{ end }}
+        </div> {{ $projectListPage := site.GetPage "section" "projects" }}
+        {{ $allProjectsCount := len (where .Site.RegularPages "Section" "projects") }}
+        {{ if and $projectListPage (gt $allProjectsCount 3) }} <div class="text-center pt-4 pb-2">
+            <a href="{{ $projectListPage.RelPermalink }}" class="btn btn-outline-primary btn-lg"> View All Projects
+            </a>
+        </div>
+        {{ end }}
+
+    </div> </section>
+{{ end }}
