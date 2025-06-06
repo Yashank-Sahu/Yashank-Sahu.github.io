@@ -1,204 +1,99 @@
-# This file configures the content management interface for Pages CMS.
-# It is tailored to your specific config.yaml and project structure.
+# .pages.yaml
 
-# Media settings: Where to store uploaded images and how to reference them.
-media_folder: "static/images/uploads" # Uploaded images will go here.
-public_folder: "/images/uploads"      # The public path to access the images.
+# Media configuration: Defines where images and other assets are stored and how they are referenced.
+media:
+  input: static/images # Repository path for media files
+  output: /images      # URL path prefix for media in content (Hugo specific)
+  path: ""             # Optional: Default subfolder in media browser (e.g., "projects")
+  extensions: [png, jpg, jpeg, webp, gif, svg] # Allowed file extensions
 
-collections:
-  # Collection 1: For your Technical Tools Hub documentation.
-  - name: "tools"
-    label: "Technical Tools"
-    label_singular: "Tool"
-    folder: "content/tools"
-    create: true
-    slug: "{{slug}}"
-    # Defines the fields for each tool's front matter.
+# Content definitions: Specifies editable content types (collections or single files).
+content:
+  # "Projects" Collection
+  - name: projects
+    label: Projects
+    path: content/projects # Directory for project markdown files
+    type: collection
+    format: yaml-frontmatter # YAML frontmatter + Markdown content
+    filename: '{year}-{month}-{day}-{primary}.md' # Naming pattern for new project files
+    view: # How this collection is displayed in Pages CMS
+      primary: title # Main identifying field
+      fields: [title, date, draft] # Fields in list view
+      sort: [date, title] # Sortable fields
+      default: {sort: date, order: desc} # Default sort
+    fields: # Frontmatter fields for each project
+      - name: title
+        label: Title
+        type: text
+        required: true
+      - name: date
+        label: Date
+        type: date
+        required: true
+      - name: draft
+        label: Draft
+        type: boolean
+        default: true
+      - name: image
+        label: Project Image
+        type: image
+        description: "Select from media library. Path will be like /images/projects/your-image.png"
+      - name: description
+        label: Description
+        type: text
+      - name: badges
+        label: Badges / Technologies Used
+        type: string
+        list: true
+      - name: links # List of link objects
+        label: Associated Links
+        list: true
+        component: link_item # Each item in this list uses the 'link_item' component structure
+
+  # "Tools" Collection
+  - name: tools
+    label: Tools Used
+    path: content/tools # Directory for tools markdown files
+    type: collection
+    format: yaml-frontmatter
+    filename: '{primary}.md' # Naming pattern for new tool files (or use date-based)
+    view: # How this collection is displayed in Pages CMS
+      primary: title
+      fields: [title, date, draft]
+      sort: [title, date]
+      default: {sort: title, order: asc}
+    fields: # Frontmatter fields for each tool
+      - name: title
+        label: Tool Name
+        type: text
+        required: true
+      - name: date
+        label: Date Added / Last Updated
+        type: date
+        required: true # Assuming tools are treated like dated entries
+      - name: draft
+        label: Draft
+        type: boolean
+        default: true
+      - name: icon
+        label: Tool Icon
+        type: image
+        description: "Optional: Visual icon for the tool (e.g., /images/tools/tool-logo.svg)"
+      - name: description
+        label: Short Description
+        type: text
+      # Main content ('body') for tools is implicitly handled by the main editor.
+
+# Components: Reusable groups of fields.
+components:
+  link_item: # Component for a single link structure
+    label: Link Item
     fields:
-      - { label: "Tool Name", name: "title", widget: "string" }
-      - { label: "Publish Date", name: "date", widget: "datetime" }
-      - { label: "Draft", name: "draft", widget: "boolean", default: true }
-      - { label: "Short Description", name: "description", widget: "string", hint: "A one-liner describing the tool's primary function." }
-      - { label: "Tool Logo/Banner", name: "image", widget: "image", required: false }
-      - { label: "Categories", name: "categories", widget: "list", hint: "General categories, e.g., Network Security, Vulnerability Management." }
-      - { label: "Tags", name: "tags", widget: "list", hint: "Specific keywords, e.g., CLI, Open Source, Automation." }
-      - { label: "Tool Type", name: "tool_types", widget: "list", hint: "Functional type, e.g., Scanner, Analyzer, Orchestrator." }
-      - { label: "Platform", name: "platforms", widget: "list", hint: "e.g., Linux, Windows, Cloud, Cross-Platform." }
-      - { label: "Tool Version", name: "tool_version", widget: "string", required: false, hint: "Specific version documented, if applicable." }
-      - { label: "Author", name: "author", widget: "hidden", default: "Yashank Sahu" }
-      - { label: "Full Documentation", name: "body", widget: "markdown" }
-
-  # Collection 2: For your standalone projects.
-  - name: "projects"
-    label: "Projects"
-    label_singular: "Project"
-    folder: "content/projects"
-    create: true # Allow creating new project pages.
-    slug: "{{slug}}"
-    # Defines the fields for each project's front matter.
-    fields:
-      - { label: "Title", name: "title", widget: "string" }
-      - { label: "Publish Date", name: "date", widget: "datetime" }
-      - { label: "Draft", name: "draft", widget: "boolean", default: true }
-      - { label: "Display on Homepage", name: "showInHome", widget: "boolean", default: true, hint: "Check this to allow this project to be featured on the homepage (if it's one of the latest)." }
-      - { label: "Project Image", name: "image", widget: "image", required: false }
-      - { label: "Summary / Short Description", name: "description", widget: "text", hint: "A concise summary for list views and cards." }
-      - { label: "Badges / Technologies", name: "badges", widget: "list", hint: "List of technologies used, e.g., Python, AWS, Docker." }
-      - { label: "Small Icon Links (e.g., GitHub)", name: "links", widget: "list", fields: [
-          { label: "Icon Class", name: "icon", widget: "string", hint: "e.g., fab fa-github" },
-          { label: "URL", name: "url", widget: "string" }
-        ]}
-      - { label: "Ordering Weight", name: "weight", widget: "number", required: false, hint: "Use a number to control project order (lower numbers appear first)." }
-      - { label: "Detailed Content", name: "body", widget: "markdown" }
-
-  # File Collection: For editing your main config.yaml and portfolio sections.
-  - name: "settings"
-    label: "Site & Portfolio Settings"
-    files:
-      - file: "config.yaml"
-        label: "Main Configuration"
-        name: "config"
-        # This mirrors the editable parts of your config.yaml
-        fields:
-          - { label: "Site Title (in browser tab)", name: "title", widget: "string" }
-          - label: "Site Parameters"
-            name: "params"
-            widget: "object"
-            fields:
-              - { label: "Author Name", name: "author", widget: "string" }
-              - { label: "Site Description (for SEO)", name: "description", widget: "text" }
-              - { label: "Default Theme Mode", name: "defaultTheme", widget: "select", options: ["auto", "light", "dark"] }
-              - { label: "Favicon Path", name: "favicon", widget: "string", hint: "e.g., /profilepic.jpeg" }
-              - label: "Navbar"
-                name: "navbar"
-                widget: "object"
-                fields:
-                  - { label: "Brand Name (links to home)", name: "brandName", widget: "string" }
-                  - { label: "Brand Logo Image Path", name: "brandLogo", widget: "string", required: false }
-                  - label: "Homepage Section Toggles"
-                    name: "menus"
-                    widget: "object"
-                    fields:
-                      - { label: "Show 'About'", name: "disableAbout", widget: "boolean" }
-                      - { label: "Show 'Experience'", name: "disableExperience", widget: "boolean" }
-                      - { label: "Show 'Education'", name: "disableEducation", widget: "boolean" }
-                      - { label: "Show 'Projects'", name: "disableProjects", widget: "boolean" }
-                      - { label: "Show 'Certificates' (Achievements)", name: "disableAchievements", widget: "boolean" }
-                      - { label: "Show 'Contact'", name: "disableContact", widget: "boolean" }
-              - label: "Hero Section"
-                name: "hero"
-                widget: "object"
-                fields:
-                  - { label: "Intro Text", name: "intro", widget: "string", default: "Hi, my name is" }
-                  - { label: "Main Title", name: "title", widget: "string", hint: "Your name, e.g., 'Yashank Sahu.'" }
-                  - { label: "Subtitle / Tagline", name: "subtitle", widget: "string" }
-                  - { label: "Hero Content / Summary", name: "content", widget: "markdown" }
-                  - { label: "Hero Image", name: "image", widget: "image" }
-                  - label: "Resume Button"
-                    name: "button"
-                    widget: "object"
-                    fields:
-                      - { label: "Enable Button", name: "enable", widget: "boolean", default: true }
-                      - { label: "Button Text", name: "name", widget: "string", default: "Resume" }
-                      - { label: "Button URL", name: "url", widget: "string" }
-                      - { label: "Download Link?", name: "download", widget: "boolean", default: false }
-                      - { label: "Open in New Page?", name: "newPage", widget: "boolean", default: true }
-                  - label: "Hero Social Links"
-                    name: "socialLinks"
-                    widget: "object"
-                    fields:
-                      - label: "FontAwesome Icons"
-                        name: "fontAwesomeIcons"
-                        widget: "list"
-                        fields:
-                          - { label: "Icon Class", name: "icon", widget: "string", hint: "e.g., fab fa-linkedin" }
-                          - { label: "URL", name: "url", widget: "string" }
-              - label: "About Section"
-                name: "about"
-                widget: "object"
-                fields:
-                  - { label: "Enable Section", name: "enable", widget: "boolean" }
-                  - { label: "Section Title", name: "title", widget: "string" }
-                  - { label: "About Image", name: "image", widget: "image" }
-                  - { label: "Content", name: "content", widget: "markdown" }
-                  - label: "Skills in 'About' Section"
-                    name: "skills"
-                    widget: "object"
-                    fields:
-                      - { label: "Enable Skills List", name: "enable", widget: "boolean" }
-                      - { label: "Skills List Title", name: "title", widget: "string" }
-                      - { label: "Skills", name: "items", widget: "list" }
-              - label: "Education"
-                name: "education"
-                widget: "object"
-                fields:
-                  - { label: "Enable Section", name: "enable", widget: "boolean" }
-                  - { label: "Section Title", name: "title", widget: "string", required: false }
-                  - label: "Education Items"
-                    name: "items"
-                    widget: "list"
-                    fields:
-                      - { label: "Degree", name: "title", widget: "string" }
-                      - label: "School"
-                        name: "school"
-                        widget: "object"
-                        fields:
-                          - { label: "School Name", name: "name", widget: "string" }
-                          - { label: "School URL", name: "url", widget: "string" }
-                      - { label: "Date/Period", name: "date", widget: "string" }
-                      - { label: "GPA/Grade", name: "GPA", widget: "string", required: false }
-                      - { label: "Details / Key Project", name: "content", widget: "markdown" }
-                      - label: "Featured Link (e.g., Project Repo)"
-                        name: "featuredLink"
-                        widget: "object"
-                        required: false
-                        fields:
-                          - { label: "Enable Link", name: "enable", widget: "boolean" }
-                          - { label: "Link Name", name: "name", widget: "string" }
-                          - { label: "URL", name: "url", widget: "string" }
-              - label: "Certificates (Achievements Section)"
-                name: "achievements"
-                widget: "object"
-                fields:
-                  - { label: "Enable Section", name: "enable", widget: "boolean" }
-                  - { label: "Section Title", name: "title", widget: "string" }
-                  - label: "Certificate Items"
-                    name: "items"
-                    widget: "list"
-                    fields:
-                      - { label: "Certificate Name", name: "title", widget: "string" }
-                      - { label: "Details / Skills Validated", name: "content", widget: "text" }
-              - label: "Contact Section"
-                name: "contact"
-                widget: "object"
-                fields:
-                  - { label: "Enable Section", name: "enable", widget: "boolean" }
-                  - { label: "Section Title", name: "title", widget: "string", required: false }
-                  - { label: "Message", name: "content", widget: "text" }
-                  - label: "Formspree"
-                    name: "formspree"
-                    widget: "object"
-                    fields:
-                      - { label: "Enable Formspree Form", name: "enable", widget: "boolean" }
-                      - { label: "FormSpree Form ID", name: "formId", widget: "string", hint: "The string of characters at the end of your formspree.io/f/ URL" }
-              - label: "Footer Settings"
-                name: "footer"
-                widget: "object"
-                fields:
-                  - label: "Recent Content Section"
-                    name: "recentPosts"
-                    widget: "object"
-                    fields:
-                      - { label: "Enable Section", name: "enable", widget: "boolean" }
-                      - { label: "Section Title", name: "title", widget: "string" }
-                      - { label: "Content Path", name: "path", widget: "string", hint: "e.g., 'tools' to show recent tools" }
-                      - { label: "Number of Items", name: "count", widget: "number", value_type: "int" }
-                  - label: "Footer Social Networks"
-                    name: "socialNetworks"
-                    widget: "object"
-                    fields:
-                      - { label: "GitHub URL", name: "github", widget: "string", required: false }
-                      - { label: "LinkedIn URL", name: "linkedin", widget: "string", required: false }
-                      - { label: "Twitter URL", name: "twitter", widget: "string", required: false }
-                      - { label: "Instagram URL", name: "instagram", widget: "string", required: false }
-                      - { label: "Facebook URL", name: "facebook", widget: "string", required: false }
+      - name: icon
+        label: Icon Class
+        type: string
+        description: "FontAwesome icon class (e.g., fab fa-github, fas fa-link)"
+      - name: url
+        label: URL
+        type: string
+        required: true
